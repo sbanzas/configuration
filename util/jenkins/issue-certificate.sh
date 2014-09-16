@@ -4,17 +4,23 @@ cd configuration
 pip install -r requirements.txt
 env
 
-ip=$(python playbooks/ec2.py | jq -r '."tag_Name_prod-edx-worker"[0] | strings')
-ssh="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
-manage="cd /edx/app/edxapp/edx-platform && sudo -u www-data /edx/bin/python.edxapp ./manage.py"
+if [[ "$cluster" = "prod" ]]; then
+  ansible="ansible first_in_tag_Name_prod-edx-worker -i playbooks/ec2.py -u ubuntu -s -U www-data -a"
+elif [[ "$cluster" = "edge" ]]; then
+  ansible="ansible first_in_tag_Name_prod-edge-worker -i playbooks/ec2.py -u ubuntu -s -U www-data -a"
+fi
+
+manage="/edx/bin/python.edxapp /edx/bin/manage.edxapp lms --settings aws"
 
 if [ "$report" = "true" ]; then
-  $ssh ubuntu@"$ip" "$manage lms gen_cert_report -c $course_id --settings aws"
+  $ansible "$manage gen_cert_report -c $course_id"
 elif [ "$regenerate" = "true" ] ; then
-    $ssh ubuntu@"$ip" "$manage lms regenerate_user -c $course_id -u $username --settings aws"
+    $ansible "$manage regenerate_user -c $course_id -u $username"
   else
-    $ssh ubuntu@"$ip" "$manage lms ungenerated_certs -c $course_id --settings aws"
+    $ansible "$manage ungenerated_certs -c $course_id"
+    $ansible "$manage gen_cert_report -c $course_id"
   if [ "$force_certificate_state" ]; then
-    $ssh ubuntu@"$ip" "$manage lms ungenerated_certs -c $course_id -f $force_certificate_state --settings aws"
+    $ansible "$manage ungenerated_certs -c $course_id $force_certificate_state"
+    $ansible "$manage gen_cert_report -c $course_id"
   fi
 fi
