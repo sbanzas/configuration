@@ -7,11 +7,11 @@ XSERVER_RUN_URL: ''
 XSERVER_LOGGING_ENV: 'sandbox'
 XSERVER_SYSLOG_SERVER: ''
 # For 6.00x use "{{ xserver_data_dir }}/data/content-mit-600x~2012_Fall"
-XSERVER_GRADER_DIR: !!null
+XSERVER_GRADER_DIR: "{{ xserver_data_dir }}/data/graders"
 # For 6.00x use "git@github.com:/MITx/6.00x.git"
-XSERVER_GRADER_SOURCE: !!null
+XSERVER_GRADER_SOURCE: "https://github.com/sbanzas/XServerGraders.git"
 # This must be set to run this role
-XSERVER_GIT_IDENTITY: !!null
+XSERVER_GIT_IDENTITY: "{{ secure_dir }}/files/git-identity"
 
 XSERVER_LANG: "en_US.UTF-8"
 
@@ -38,7 +38,7 @@ xserver_env_config:
   SYSLOG_SERVER: $XSERVER_SYSLOG_SERVER
   SANDBOX_PYTHON: '{{ xserver_venv_sandbox_dir }}/bin/python'
 
-xserver_source_repo: "git://github.com/edx/xserver.git"
+xserver_source_repo: "git://github.com/sbanzas/xserver.git"
 # This should probably be overridden in the playbook or groupvars
 # with the default pointing to the head of master.
 xserver_version: master
